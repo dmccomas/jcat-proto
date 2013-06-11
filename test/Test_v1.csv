@@ -1,0 +1,11 @@
+group,directory,ASM,C,C++,Python,Matlab,Perl,SH
+Test,.,0,0,0,0,0,0,7
+Test,./apps/cf/fsw/mission_inc,0,12,0,0,0,0,0
+Test,./apps/cf/fsw/platform_inc,0,57,0,0,0,0,0
+Test,./apps/cf/fsw/src,0,3699,0,0,0,0,0
+Test,./apps/cf/fsw/src/PRI,0,4315,0,0,0,0,0
+Test,./apps/cf/fsw/src/PUB,0,247,0,0,0,0,0
+Test,./apps/cf/fsw/tables,0,8,0,0,0,0,0
+Test,./apps/cfs_lib/fsw/public_inc,0,14,0,0,0,0,0
+Test,./apps/cfs_lib/fsw/src,0,152,0,0,0,0,0
+Test,TEST_TOTALS,0,8504,0,0,0,0,7
