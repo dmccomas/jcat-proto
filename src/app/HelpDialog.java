@@ -10,30 +10,7 @@ import org.eclipse.swt.widgets.*;
 public class HelpDialog extends Dialog
 {
 
-   final String helpStr = "SLOC is a tool to help manage and analyze SLIC output files. SLIC is a source line counting tool and is easy to\n" +
-                          "run using its default configuration at a project's root directory and have it generate a text file containing a\n" +
-                          "count of all of a project's files. However this output may contain unwanted directories (not be included in SLOC\n" +
-                          "count) and many times it is helpful to logically group directories within a project to get subtotals. For example\n" +
-                          "files in heritage cirectories or directories from a reuse library. SLOC can help with these tasks.  SLOC is typically\n" +
-                          "used in one of two ways:\n\n" +
-                          "     1. Input a SLIC file and generate a comma separated report that can be imported to Excel\n" +
-                          "         Directories are then managed within Excel and different software release code counts can\n" +
-                          "         be maintained in different tabs\n" +
-                          "     2. Input a SLIC file and manipulate the directories within SLOC. SLOC allows you to save a\n" +
-                          "         project's information in an XML file. New releases can be added to the XML database. Note\n" +
-                          "         each time you run SLIC it must be run from the same base directory in order for directories to\n" +
-                          "         be managed correctly. Even if you use SLOC to manage directories you may still want to export\n +" +
-                          "         a CSV file to Excel\n\n" +
-                          "Steps to generate a comma separated report for importing to Excel:\n" +
-                          "     1. Run SLIC from the top-most directory in a project and direct the ouptut to a text file\n" +
-                          "         Using a .txt extension is recommended.\n" +
-                          "     2. Start SLOC and select File->New to import the SLIC file. You will be prompted for a project\n" +
-                          "         name and software version number. Note the project name will be used to as the default SLOC\n" +
-                          "         'group' name and all of the project directories will be in this group.\n" +
-                          "     3. Select Options->Generate Report to create the CSV file. " +
-                          "     4. Start Excel and import the CSV file.\n\n" +
-                          "Steps to manage a project within SLOC\n" +
-                          "     1. TBD\n\n";
+   final String helpStr = "Coming soon...\n";
    
    // Constructors
    
