@@ -1,6 +1,6 @@
 package fsw;
 
-import java.util.ArrayList; 
+import java.util.ArrayList;  
 
 import ccsds.CcsdsCmdPkt;
 
@@ -15,36 +15,41 @@ public class CmdPkt
    private String  AppPrefix;
    private String  Name;
    private ArrayList<CmdParam>  ParamList = new ArrayList<CmdParam>();
-
+   private int     ParamByteLen;   // Total number of bytes in ParamList
+   
    CcsdsCmdPkt CmdPkt;
    
    /*
    ** Constructor - No command parameters
    */
-   public CmdPkt (String AppPrefix, String Name, int MsgId, int FuncCode) {
+   public CmdPkt (String AppPrefix, String Name, int MsgId, int FuncCode, int DataLen) {
    
       this.AppPrefix = AppPrefix;
       this.Name      = Name;
+      ParamByteLen   = 0;   // Will be computed as parameters added
       
-      CmdPkt = new CcsdsCmdPkt(MsgId, CcsdsCmdPkt.CCSDS_CMD_HDR_LEN, FuncCode);
+      CmdPkt = new CcsdsCmdPkt(MsgId, CcsdsCmdPkt.CCSDS_CMD_HDR_LEN+DataLen, FuncCode);
       CmdPkt.ComputeChecksum();
       
    } // End CmdPkt()
    
    /*
-   ** Constructor - With command parameters
+   ** Constructor - With command parameters in a byte array
    */
     public CmdPkt (String AppPrefix, String Name, Integer MsgId, Integer FuncCode, byte[] DataBuf, int DataLen ) {
 
        this.AppPrefix = AppPrefix;
        this.Name      = Name;
+       ParamByteLen   = DataLen;
        
-       CmdPkt = new CcsdsCmdPkt(MsgId,CcsdsCmdPkt.CCSDS_CMD_HDR_LEN + DataLen,FuncCode);
+       CmdPkt = new CcsdsCmdPkt(MsgId, CcsdsCmdPkt.CCSDS_CMD_HDR_LEN+DataLen, FuncCode);
        CmdPkt.LoadData(DataBuf, DataLen);
 
     } // End CmdPkt()
 
-   
+   /*
+    * Load command parameters from a byte array
+    */
    public CcsdsCmdPkt LoadParams(byte[] DataBuffer, int DataLen)
    {      
 
@@ -59,50 +64,55 @@ public class CmdPkt
      
    } // LoadParams()
 
-   public CcsdsCmdPkt LoadParams(ArrayList<CmdParam>  ParamList)
+   /*
+    * Replace CmdParam array list and load the data
+    */
+   
+   public CcsdsCmdPkt setParamList(ArrayList<CmdParam>  paramList)
    {      
 
-      byte[] DataBuffer = null;
+      ParamList = paramList;
+      
+      return CmdPkt = loadParamList();
+      
+   } // setParamList()
+   
+   /*
+    * Load parameter data from the current parameter list
+    */
+   
+   public CcsdsCmdPkt loadParamList()
+   {      
 
+      byte[] CmdParamBuffer;
+      int    CmdParamBufIndx = 0;
+      
       if (!ParamList.isEmpty())
       {
-         int i, DataLen=0, DataIndex=0;
-      
-         for (i=0; i < ParamList.size(); i++)
+         
+         ParamByteLen = 0;
+         for (int i=0; i < ParamList.size(); i++)
          {
-            DataLen += ParamList.get(i).getNumBytes();
-            System.out.println("CmdPkt::LoadParams() - Param["+i+"]="+ParamList.get(i).getValue());
+            ParamByteLen += ParamList.get(i).getNumBytes();
          }
+         CmdParamBuffer = new byte[ParamByteLen];
+         System.out.println("CmdPkt::loadParamList() - Creating parameter list with byte length " + ParamByteLen);
                
-         DataBuffer = new byte[DataLen];
-        
-         for (i=0; i < ParamList.size(); i++)
+         for (int i=0; i < ParamList.size(); i++)
          {
-            if (ParamList.get(i).getNumBytes() == 1)
-            {
-               System.out.println("CmdPkt::LoadParams() - 1 byte parameter"); 
-               DataBuffer[DataIndex++] = new Integer(ParamList.get(i).getValue()).byteValue();
-               System.out.println("DataBuffer["+(DataIndex-1)+"]="+DataBuffer[DataIndex-1]);
-            }
-            else if (ParamList.get(i).getNumBytes() == 2)
-            {
-               System.out.println("CmdPkt::LoadParams() - 2 byte parameter"); 
-               int Temp = ParamList.get(i).getValue();
-               DataBuffer[DataIndex++] = new Integer(Temp & 0xFF).byteValue();
-               DataBuffer[DataIndex++] = new Integer((Temp & 0xFF00 ) >> 8).byteValue();
-               System.out.println("DataBuffer["+(DataIndex-2)+"]="+DataBuffer[DataIndex-2]);
-               System.out.println("DataBuffer["+(DataIndex-1)+"]="+DataBuffer[DataIndex-1]);
-            }
-            else
+            byte[] ParamBuffer = ParamList.get(i).getByteArray();
+            
+            for (int j=0; j < ParamList.get(i).getNumBytes(); j++)
             {
             
-               // @todo - Resolve illegal parameter bytes definition              
+               CmdParamBuffer[CmdParamBufIndx++] = ParamBuffer[j];
+               System.out.println("CmdParamBuffer["+(CmdParamBufIndx-1)+"] = " + CmdParamBuffer[CmdParamBufIndx-1]);
             
-            }
+            } // End by
               
-           } // End parameter loop
+         } // End parameter list loop
            
-         CmdPkt.LoadData(DataBuffer,DataLen);
+         CmdPkt.LoadData(CmdParamBuffer,ParamByteLen);
            
       } // ParamList not empty
       else
@@ -115,8 +125,7 @@ public class CmdPkt
 
       return CmdPkt;
      
-   } // LoadParams()
-   
+   } // loadParamList()
    
    public CcsdsCmdPkt getCcsdsPkt()
    {      
@@ -154,7 +163,14 @@ public class CmdPkt
    
    } // hasParam()
 
+   public void setParam(int paramNum, String paramValue)
+   {      
+      ParamList.get(paramNum).setValue(paramValue);
+   
+   } // addParam()
    /*
+    * @todo - Can this be deleted? No references.
+    * 
    ** Create a command parameter byte array that can easily be used with CCSDS Packet
    ** methods.
    ** 

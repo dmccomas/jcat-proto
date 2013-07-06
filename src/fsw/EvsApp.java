@@ -23,19 +23,9 @@ public class EvsApp extends FswApp
    
    public void defineCmds() {
     
-      CmdList.set(CMD_FC_NOOP,  new CmdPkt(PREFIX_STR, "No Op", CMD_MID, CMD_FC_NOOP));
-      CmdList.set(CMD_FC_RESET, new CmdPkt(PREFIX_STR, "Reset", CMD_MID, CMD_FC_RESET));
+      CmdList.set(CMD_FC_NOOP,  new CmdPkt(PREFIX_STR, "No Op", CMD_MID, CMD_FC_NOOP, 0));
+      CmdList.set(CMD_FC_RESET, new CmdPkt(PREFIX_STR, "Reset", CMD_MID, CMD_FC_RESET, 0));
 
-      // @todo - Error: The initial constructor doesn't allocate space for the command parameters!!
-      int CmdDataLen = 7;
-      byte[] CmdDataBuf = new byte[CmdDataLen];
-      CmdPkt AddPktCmd = new CmdPkt(PREFIX_STR, "Add Pkt", CMD_MID, CMD_FC_ADD_PKT, CmdDataBuf, CmdDataLen);
-      AddPktCmd.addParam(new CmdParam("Message ID",3840, 2));
-      AddPktCmd.addParam(new CmdParam("Pkt Size",50, 2));
-      AddPktCmd.addParam(new CmdParam("SB QoS",0, 2));
-      AddPktCmd.addParam(new CmdParam("Buffer Cnt",1, 1));
-      CmdList.set(CMD_FC_ADD_PKT, AddPktCmd);
-      
    } // defineCmds
    
    public void defineTlm() {
@@ -50,11 +40,22 @@ public class EvsApp extends FswApp
 
       byte[] TlmPkt = TlmMsg.getPacket();
       
-      String Message = new String(TlmPkt,44,122); // OS_MAX_API_NAME = 20, CFE_EVS_MAX_MESSAGE_LENGTH = 122
-      String MsgStr  = Message.substring(0,Message.indexOf('\0')) + "\n";
+      // @todo - Having trouble with format and no time to debug
+      String MsgA = new String(TlmPkt,12,122); // OS_MAX_API_NAME = 20, CFE_EVS_MAX_MESSAGE_LENGTH = 122
+      String MsgB = new String(TlmPkt,44,122); // OS_MAX_API_NAME = 20, CFE_EVS_MAX_MESSAGE_LENGTH = 122
+      String MsgStr  = MsgA.substring(0,MsgA.indexOf('\0')) + ": " + MsgB.substring(0,MsgB.indexOf('\0')) + "\n";
     
       return MsgStr; 
       
    } // getTlmStr
 
+   public String[] getTlmStrArray(CcsdsTlmPkt TlmMsg) 
+   {
+      loadTlmStrArrayHdr(TlmMsg);
+      
+      return TlmStrArray;
+      
+   } // getTlmStrArray()
+
+   
 } // End class EvsApp

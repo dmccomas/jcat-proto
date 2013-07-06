@@ -36,4 +36,13 @@ public class TblApp extends FswApp
       
    } // getTlmStr
 
+   public String[] getTlmStrArray(CcsdsTlmPkt TlmMsg) 
+   {
+      loadTlmStrArrayHdr(TlmMsg);
+      
+      return TlmStrArray;
+      
+   } // getTlmStrArray()
+
+   
 } // End class TblApp

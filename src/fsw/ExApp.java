@@ -27,8 +27,8 @@ public class ExApp extends FswApp
    
    public void defineCmds() {
     
-      CmdList.set(CMD_FC_NOOP,  new CmdPkt(PREFIX_STR, "No Op", CMD_MID, CMD_FC_NOOP));
-      CmdList.set(CMD_FC_RESET, new CmdPkt(PREFIX_STR, "Reset", CMD_MID, CMD_FC_RESET));
+      CmdList.set(CMD_FC_NOOP,  new CmdPkt(PREFIX_STR, "No Op", CMD_MID, CMD_FC_NOOP, 0));
+      CmdList.set(CMD_FC_RESET, new CmdPkt(PREFIX_STR, "Reset", CMD_MID, CMD_FC_RESET, 0));
 /**      
       CmdPkt TestCmd = new CmdPkt(PREFIX_STR, "Test", CMD_MID, 4);
       TestCmd.addParam(new CmdParam("P1",1, 2));
@@ -54,5 +54,14 @@ public class ExApp extends FswApp
       return ParseRawData(TlmMsg.getPacket());
       
    } // getTlmStr
-   
+
+   public String[] getTlmStrArray(CcsdsTlmPkt TlmMsg) 
+   {
+      loadTlmStrArrayHdr(TlmMsg);
+      
+      return TlmStrArray;
+      
+   } // getTlmStrArray()
+
+
 } // End class ExApp

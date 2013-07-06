@@ -8,7 +8,7 @@
 */
 package fsw;
 
-import java.util.ArrayList; 
+import java.util.ArrayList;  
 
 import ccsds.*;
 
@@ -42,24 +42,27 @@ public abstract class FswApp
    
    protected ArrayList<CmdPkt>  CmdList;
    protected ArrayList<Integer> TlmList;  // TODO - Couple with CCSDS stream ID type 
+   protected String[]           TlmStrArray;
    
    protected FswApp (String Prefix, String Name) {
       
       int i;
-      CmdPkt NullCmd = new CmdPkt (NULL_APP_STR, NULL_CMD_STR, NULL_CMD_INT, NULL_CMD_INT);
+      CmdPkt NullCmd = new CmdPkt (NULL_APP_STR, NULL_CMD_STR, NULL_CMD_INT, NULL_CMD_INT, 0);
 
       this.Prefix = Prefix;
       this.Name   = Name;
 
       CmdList = new ArrayList<CmdPkt>(CMD_MAX);
       TlmList = new ArrayList<Integer>(TLM_MAX);
-
+      TlmStrArray = new String[1024];  //@todo - Picked 1024 as safe max length
+      
       for (i=0; i < CMD_MAX; i++)
          CmdList.add(NullCmd);
       
       //for (i=0; i < TLM_MAX; i++)
       //   CmdList.add(NullCmd);
 
+      System.out.println("FswApp: Name = " + Name +", Prefix = " + Prefix);
       System.out.println("FswApp:CmdList size = " + CmdList.size());
       System.out.println("FswApp:TlmList size = " + TlmList.size());
      
@@ -83,6 +86,14 @@ public abstract class FswApp
    ** There are some constant strings that should be used for reporting information. 
    */
    public abstract String getTlmStr(CcsdsTlmPkt TlmMsg);
+  
+   /*
+    * This method is intended to simplify teh needs of a GUI. The application provides
+    * a function that parses the packet and creates a string for each telemetry packet
+    * element.
+    * 
+    */
+   public abstract String[] getTlmStrArray(CcsdsTlmPkt TlmMsg);
 
    public ArrayList<CmdPkt> getCmdList() {
       
@@ -163,6 +174,54 @@ public abstract class FswApp
 
     } // End ByteToHexStr()
 
+    /***************************************************************************
+     **
+     ** TlmStrArray helper functions
+     **
+     ** 1. Use ArrayList for speed because it does not allocate a new array on the heap. 
+     ** 2. Java doesn't have unsigned integers. Use 'long' that should be 64 bits and avoid sign bit
+     */
+     
+     public void loadTlmStrArrayHdr(CcsdsTlmPkt TlmMsg)
+     {
+        
+        TlmStrArray[0] = String.valueOf((TlmMsg.getStreamId()));
+        TlmStrArray[1] = String.valueOf((TlmMsg.getSeqCount()));
+        TlmStrArray[2] = String.valueOf((TlmMsg.getLength()));
+        TlmStrArray[3] = "Seconds";    // @todo - Seconds
+        TlmStrArray[4] = "SubSeconds"; // @todo - SubSeconds
+
+     } // End loadTlmStrArrayHdr()
+
+     public void loadTlmStrArrayUint8(int TlmStrIndex, 
+                                     byte[] RawData,  int RawIndex)
+     {
+        
+        TlmStrArray[TlmStrIndex] = String.valueOf( (0x00FF & RawData[RawIndex])); // I think this solves unsigned  
+        
+     } // End loadTlmStrArrayUint8()
+
+     public void loadTlmStrArrayUint16(int TlmStrIndex, 
+                                       byte[] RawData,  int RawIndex)
+     {
+
+        long longInt = 0x0000FFFF & (RawData[RawIndex]|((RawData[RawIndex+1] << 8)));
+        TlmStrArray[TlmStrIndex] = String.valueOf(longInt);  
+
+     } // End loadTlmStrArrayUint16()
+     
+     public void loadTlmStrArrayUint32(int TlmStrIndex, 
+           byte[] RawData,  int RawIndex)
+     {
+
+        long longIntA = (RawData[RawIndex]   | ((RawData[RawIndex+1] << 8)));
+        long longIntB = (RawData[RawIndex+2] | ((RawData[RawIndex+3] << 8)));
+        long longInt  = (longIntA            | longIntB << 16);
+
+        TlmStrArray[TlmStrIndex] = String.valueOf(longInt);  
+ 
+     } // End loadTlmStrArrayUint32()
+     
 } // End class FswApp
    
 

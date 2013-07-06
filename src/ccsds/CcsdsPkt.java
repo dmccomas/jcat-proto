@@ -15,6 +15,7 @@ public class CcsdsPkt
    static final public int CCSDS_PRI_HDR_LENGTH = 6;
    
    static final public int CCSDS_MSK_MSG_ID  = 0x0000FFFF;
+   static final public int CCSDS_MSK_SEQ_CNT = 0x00003FFF;
 
    static int CCSDS_LENGTH_ADJUST = 7;
 
@@ -76,13 +77,13 @@ public class CcsdsPkt
 
    public int getSeqCount()
    {
-      return (Packet[CCSDS_IDX_LENGTH] | (Packet[CCSDS_IDX_LENGTH+1] << 8)) + CCSDS_LENGTH_ADJUST;
+      return ( (( (Packet[CCSDS_IDX_SEQ_COUNT] & 0x00FF) | (Packet[CCSDS_IDX_SEQ_COUNT+1] << 8)) & CCSDS_MSK_SEQ_CNT) );
 
-   }// End getSeqCount()
+   }// End getSeqCount() 
 
    public int getLength()
    {
-      return (Packet[CCSDS_IDX_LENGTH] | (Packet[CCSDS_IDX_LENGTH+1] << 8));
+      return ( ( (Packet[CCSDS_IDX_LENGTH]    & 0x00FF) | (Packet[CCSDS_IDX_LENGTH+1] << 8)) + CCSDS_LENGTH_ADJUST);
 
    }// End getLength()
 

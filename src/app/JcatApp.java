@@ -24,6 +24,9 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 
+import fsw.CmdIntParam;
+import fsw.CmdPkt;
+import fsw.CmdStrParam;
 import fsw.EsApp;
 import fsw.EvsApp;
 import fsw.ExApp;
@@ -81,7 +84,7 @@ public class JcatApp extends ApplicationWindow
    Action actionInitNetwork;
    Action actionEnaToTlm;
    Action actionCfgToPkt;
-   Action actionSendNoop;
+   Action actionSendCmd;
    Action actionDisplayPkt;
    Action actionExit;
 
@@ -99,6 +102,11 @@ public class JcatApp extends ApplicationWindow
 
    private int DisplayStreamId = 0;
    
+   private EsApp  ES  = new EsApp(EsApp.PREFIX_STR,"Executive Services Application");
+   private ToApp  TO  = new ToApp(ToApp.PREFIX_STR,"Telemetry Output");
+   private EvsApp EVS = new EvsApp(EvsApp.PREFIX_STR,"cFE Event Service");
+   private ExApp  EX  = new ExApp(ExApp.PREFIX_STR,"Example Application");
+     
     /**
     * @param parentShell
     */
@@ -155,7 +163,6 @@ public class JcatApp extends ApplicationWindow
          {
             
             logUserActivity("Enable TO Lab Telemetry", true);
-            ToApp TO = new ToApp(ToApp.PREFIX_STR,"Telemetry Output");
             CmdPkt Cmd = TO.getCmdList().get(ToApp.CMD_FC_ENA_TLM);
             CmdWriter.sendCmd(Cmd.getCcsdsPkt());
             
@@ -175,18 +182,18 @@ public class JcatApp extends ApplicationWindow
          {
 
             logUserActivity("Configure TO Lab Packets", true);
-            ToApp TO = new ToApp(ToApp.PREFIX_STR,"Telemetry Output");
-            CmdPkt Cmd = TO.getCmdList().get(ToApp.CMD_FC_ADD_PKT); // Use default which is to enable exapp F00TLM
+            CmdPkt Cmd = TO.getCmdList().get(ToApp.CMD_FC_ADD_PKT); // Use default
+            CmdWriter.sendCmd(Cmd.getCcsdsPkt());
 
             // @todo - Fix CmdPkt bug. The default CmdParam are not actually loaded into the parameter list
+/*
             ArrayList<CmdParam>  ParamList = new ArrayList<CmdParam>();
             ParamList.add(new CmdParam("Message ID",EsApp.TLM_MID_HK, 2)); // ExApp.TLM_MID_PKT1: 3840 = 0xF00, 0x0800 = ES HK
             ParamList.add(new CmdParam("Pkt Size",50, 2));
             ParamList.add(new CmdParam("SB QoS",0, 2));
             ParamList.add(new CmdParam("Buffer Cnt",1, 1));
-
             Cmd.LoadParams(ParamList);
-            CmdWriter.sendCmd(Cmd.getCcsdsPkt());
+*/
             
                
          } // End run()
@@ -196,31 +203,81 @@ public class JcatApp extends ApplicationWindow
       //actionCfgToPkt.setImageDescriptor(ImageDescriptor.createFromFile(null, ""));
 
       /*
-       *  ACTION: Send a noop command to an application
+       *  ACTION: Send a user selected command
        *   
        */
-      actionSendNoop = new Action() 
+      actionSendCmd = new Action() 
       {
          public void run() 
          {
 
-            logUserActivity("Send  Noop", true);
-            EvsApp EVS = new EvsApp(EvsApp.PREFIX_STR,"cFE Event Service");
-            fsw.CmdPkt Cmd = EVS.getCmdList().get(EvsApp.CMD_FC_NOOP);
-            CmdWriter.sendCmd(Cmd.getCcsdsPkt());
+            int     cmdID;
+            String  cmdParam;
+            CmdPkt  cmdPkt;
+            ArrayList<CmdParam> cmdParamList;
+            
+            CmdTestDialog cmdDialog = new CmdTestDialog(getShell());
+            cmdID = cmdDialog.open();
+            cmdParam = cmdDialog.getCmdParam();
+            
+            switch (cmdID) 
+            {
+            case 0:
+               logUserActivity("EVS Cmd: Noop", true);
+               cmdPkt = EVS.getCmdList().get(EvsApp.CMD_FC_NOOP);
+               CmdWriter.sendCmd(cmdPkt.getCcsdsPkt());
+               break;
+            case 1:
+               logUserActivity("ES Cmd: Noop", true);
+               cmdPkt = ES.getCmdList().get(EsApp.CMD_FC_NOOP);
+               CmdWriter.sendCmd(cmdPkt.getCcsdsPkt());
+               break;
 
-            EsApp ES = new EsApp(EsApp.PREFIX_STR,"Executive Services Application");
-            Cmd = ES.getCmdList().get(EsApp.CMD_FC_NOOP);
-            CmdWriter.sendCmd(Cmd.getCcsdsPkt());
+            case 2:
+               logUserActivity("ES Cmd: Set Sys Log Mode", true);
+               cmdPkt = ES.getCmdList().get(EsApp.CMD_FC_OVERWRITE_SYSLOG);
+               cmdPkt.setParam(0, cmdParam);
+               CmdWriter.sendCmd(cmdPkt.getCcsdsPkt());
+               break;
+               
+            case 3:
+               logUserActivity("ES Cmd: Write Sys Log to a File", true);
+               cmdPkt = ES.getCmdList().get(EsApp.CMD_FC_WRITE_SYSLOG);
+               // Use default cmdPkt.setParam(0, cmdParam);
+               CmdWriter.sendCmd(cmdPkt.getCcsdsPkt());
+               break;
 
-            //ExApp EX = new ExApp(ExApp.PREFIX_STR,"Example Application");
-            //Cmd = EX.getCmdList().get(ExApp.CMD_FC_NOOP);
-            //CmdWriter.sendCmd(Cmd.getCcsdsPkt());
+            case 4:
+               logUserActivity("ES Cmd: Write Err Log to a File", true);
+               cmdPkt = ES.getCmdList().get(EsApp.CMD_FC_WRITE_ERLOG);
+               // Use default cmdPkt.setParam(0, cmdParam);
+               CmdWriter.sendCmd(cmdPkt.getCcsdsPkt());
+               break;
+
+            case 5:
+               logUserActivity("ES Cmd: Restart Application", true);
+               cmdPkt = ES.getCmdList().get(EsApp.CMD_FC_RESTART_APP);
+               // Use default cmdPkt.setParam(0, cmdParam);
+               CmdWriter.sendCmd(cmdPkt.getCcsdsPkt());
+               break;
+
+            case 9:
+               logUserActivity("Send EX Noop", true);
+               CmdPkt ExCmd = EX.getCmdList().get(ExApp.CMD_FC_NOOP);
+               CmdWriter.sendCmd(ExCmd.getCcsdsPkt());
+               break;
+
+            default:
+               logUserActivity("Invalid command ID " + cmdID, true);
+               System.out.println("Invalid command ID " + cmdID); 
+            
+            } // End command switch
+            
             
          } // End run()
       }; // End Action()
-      actionSendNoop.setText("Send NOOP");
-      actionSendNoop.setToolTipText("Send a Noop command to user selected app");
+      actionSendCmd.setText("Send Command");
+      actionSendCmd.setToolTipText("Send a command");
       //actionSendNoop.setImageDescriptor(ImageDescriptor.createFromFile(null, ""));
 
       /*
@@ -307,7 +364,7 @@ public class JcatApp extends ApplicationWindow
       menuFile.add(new Separator());
       menuFile.add(actionEnaToTlm);
       menuFile.add(actionCfgToPkt);
-      menuFile.add(actionSendNoop);
+      menuFile.add(actionSendCmd);
       menuFile.add(new Separator());
       menuFile.add(actionDisplayPkt);
       menuFile.add(new Separator());
@@ -356,7 +413,7 @@ public class JcatApp extends ApplicationWindow
       // Command actions
       addAction(manager, actionEnaToTlm, true);
       addAction(manager, actionCfgToPkt, true);
-      addAction(manager, actionSendNoop, true);
+      addAction(manager, actionSendCmd, true);
       manager.add(new Separator());
 
       // Telemetry actions
@@ -466,7 +523,16 @@ public class JcatApp extends ApplicationWindow
       textTlmLog.setStyleRange(styleRange1);
       textTlmLog.setSelection(textTlmLog.getCharCount());
       
-   } // End logFswEventMessage()
+   } // End logTlmPacket()
+
+   private void logTlmPacket(String[] message, int len) {
+      
+      for (int i=0; i < len; i++)
+      {
+          textTlmLog.append(message[i] + "\r\n");
+      }
+      
+   } // End logTlmPacket()
 
    private void logFswEventMessage(String message) {
       
@@ -551,13 +617,14 @@ public class JcatApp extends ApplicationWindow
                      // @todo - Create efficient StreamId to app lookup scheme 
                      if (TlmPkt.getStreamId() == 0x0808)
                      {
-                        EvsApp EVS = new EvsApp(EvsApp.PREFIX_STR,"cFE Event Service");
                         logFswEventMessage(EVS.getTlmStr(TlmPkt));
                      }
                      if (TlmPkt.getStreamId() == DisplayStreamId)
                      {
-                        ExApp EX = new ExApp(ExApp.PREFIX_STR,"Example Application");
-                        logTlmPacket(EX.getTlmStr(TlmPkt));   
+                        String[] OutputStr = ES.getTlmStrArray(TlmPkt);
+                        logTlmPacket(OutputStr, 40);
+                        //ExApp EX = new ExApp(ExApp.PREFIX_STR,"Example Application");
+                        //logTlmPacket(EX.getTlmStr(TlmPkt));   
                      }
                      
                   } // End while packets in queue

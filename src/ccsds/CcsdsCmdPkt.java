@@ -60,6 +60,7 @@ public class CcsdsCmdPkt extends CcsdsPkt
    public void LoadData(byte Data[], int DataLength)
    {
    
+      
       for (int i=0; i < DataLength; i++)
          Packet[CCSDS_IDX_CMD_DATA+i] = Data[i];
       

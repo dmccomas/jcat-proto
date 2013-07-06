@@ -26,8 +26,8 @@ public class CiApp extends FswApp
    
    public void defineCmds() {
     
-      CmdList.set(CMD_FC_NOOP,  new CmdPkt(PREFIX_STR, "No Op", CMD_MID, CMD_FC_NOOP));
-      CmdList.set(CMD_FC_RESET, new CmdPkt(PREFIX_STR, "Reset", CMD_MID, CMD_FC_RESET));
+      CmdList.set(CMD_FC_NOOP,  new CmdPkt(PREFIX_STR, "No Op", CMD_MID, CMD_FC_NOOP, 0));
+      CmdList.set(CMD_FC_RESET, new CmdPkt(PREFIX_STR, "Reset", CMD_MID, CMD_FC_RESET, 0));
       
    } // defineCmds
 
@@ -44,4 +44,12 @@ public class CiApp extends FswApp
       
    } // getTlmStr
    
+   public String[] getTlmStrArray(CcsdsTlmPkt TlmMsg) 
+   {
+      loadTlmStrArrayHdr(TlmMsg);
+      
+      return TlmStrArray;
+      
+   } // getTlmStrArray()
+
 } // End class CmdIngest

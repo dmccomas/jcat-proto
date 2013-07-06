@@ -33,49 +33,50 @@ public class ToApp extends FswApp
    public void defineCmds() {
 
       // Command variables used to 
-      CmdPkt Cmd;
-      int CmdDataLen;
-      byte[] CmdDataBuf = null;
+      CmdPkt cmdPkt;
+      int    cmdDataLen;
+      byte[] cmdDataBuf = null;
 
-      CmdList.set(CMD_FC_NOOP,  new CmdPkt(PREFIX_STR, "No Op", CMD_MID, CMD_FC_NOOP));
-      CmdList.set(CMD_FC_RESET, new CmdPkt(PREFIX_STR, "Reset", CMD_MID, CMD_FC_RESET));
+      CmdList.set(CMD_FC_NOOP,  new CmdPkt(PREFIX_STR, "No Op", CMD_MID, CMD_FC_NOOP, 0));
+      CmdList.set(CMD_FC_RESET, new CmdPkt(PREFIX_STR, "Reset", CMD_MID, CMD_FC_RESET, 0));
      
-      CmdDataLen = 15;
-      CmdDataBuf = new byte[CmdDataLen];
-      CmdDataBuf[0] = 0x31; // 127.
-      CmdDataBuf[1] = 0x32;
-      CmdDataBuf[2] = 0x37;
-      CmdDataBuf[3] = 0x2E;
-      CmdDataBuf[4] = 0x30; // 000.
-      CmdDataBuf[5] = 0x30;
-      CmdDataBuf[6] = 0x30;
-      CmdDataBuf[7] = 0x2E;
-      CmdDataBuf[8] = 0x30; // 000.
-      CmdDataBuf[9] = 0x30;
-      CmdDataBuf[10] = 0x30;
-      CmdDataBuf[11] = 0x2E;
-      CmdDataBuf[12] = 0x30; // 01
-      CmdDataBuf[13] = 0x30;
-      CmdDataBuf[14] = 0x31;
-      
-      Cmd = new CmdPkt(PREFIX_STR, "Ena Tlm", CMD_MID, CMD_FC_ENA_TLM, CmdDataBuf, CmdDataLen);
-      CmdList.set(CMD_FC_ENA_TLM,Cmd);
+      cmdDataLen = 15;
+      cmdDataBuf = new byte[cmdDataLen];
+      cmdDataBuf[0] = 0x31; // 127.
+      cmdDataBuf[1] = 0x32;
+      cmdDataBuf[2] = 0x37;
+      cmdDataBuf[3] = 0x2E;
+      cmdDataBuf[4] = 0x30; // 000.
+      cmdDataBuf[5] = 0x30;
+      cmdDataBuf[6] = 0x30;
+      cmdDataBuf[7] = 0x2E;
+      cmdDataBuf[8] = 0x30; // 000.
+      cmdDataBuf[9] = 0x30;
+      cmdDataBuf[10] = 0x30;
+      cmdDataBuf[11] = 0x2E;
+      cmdDataBuf[12] = 0x30; // 001
+      cmdDataBuf[13] = 0x30;
+      cmdDataBuf[14] = 0x31;
+      cmdPkt = new CmdPkt(PREFIX_STR, "Ena Tlm", CMD_MID, CMD_FC_ENA_TLM, cmdDataBuf, cmdDataLen);
+      CmdList.set(CMD_FC_ENA_TLM,cmdPkt);
 
-      // @todo - Error: The initial constructor doesn't allocate space for the command parameters!!
-      CmdDataLen = 7;
-      CmdDataBuf = new byte[CmdDataLen];
-      CmdPkt AddPktCmd = new CmdPkt(PREFIX_STR, "Add Pkt", CMD_MID, CMD_FC_ADD_PKT, CmdDataBuf, CmdDataLen);
-      AddPktCmd.addParam(new CmdParam("Message ID",0x0800, 2));  // // 3840 = 0xF00 (ExApp), 2048 = 0x800 (ES HK)
-      AddPktCmd.addParam(new CmdParam("Pkt Size",50, 2));
-      AddPktCmd.addParam(new CmdParam("SB QoS",0, 2));
-      AddPktCmd.addParam(new CmdParam("Buffer Cnt",1, 1));
-      CmdList.set(CMD_FC_ADD_PKT, AddPktCmd);
+/* The following doesn't work & not sure why
+      cmdPkt = new CmdPkt(PREFIX_STR, "Ena Tlm", CMD_MID, CMD_FC_ENA_TLM, 15);  // One IP address parameter
+      cmdPkt.addParam(new CmdStrParam("IP Address","127.000.000.001", 15));     
+      CmdList.set(CMD_FC_ENA_TLM,cmdPkt);
+*/
+      cmdPkt = new CmdPkt(PREFIX_STR, "Add Pkt", CMD_MID, CMD_FC_ADD_PKT, 7);
+      cmdPkt.addParam(new CmdIntParam("Message ID","2048", 2));  // // 3840 = 0xF00 (ExApp), 2048 = 0x800 (ES HK)
+      cmdPkt.addParam(new CmdIntParam("Pkt Size","50", 2));
+      cmdPkt.addParam(new CmdIntParam("SB QoS","0", 2));
+      cmdPkt.addParam(new CmdIntParam("Buffer Cnt","1", 1));
+      cmdPkt.loadParamList();
+      CmdList.set(CMD_FC_ADD_PKT, cmdPkt);
       
-      CmdDataLen = 2;
-      CmdDataBuf = new byte[CmdDataLen];
-      CmdPkt RemPktCmd = new CmdPkt(PREFIX_STR, "Rem Pkt", CMD_MID, CMD_FC_REM_PKT, CmdDataBuf, CmdDataLen);
-      RemPktCmd.addParam(new CmdParam("Message ID",3840, 2));
-      CmdList.set(CMD_FC_REM_PKT, RemPktCmd);
+      cmdPkt = new CmdPkt(PREFIX_STR, "Rem Pkt", CMD_MID, CMD_FC_REM_PKT, 2); // One 2 byte parameter
+      cmdPkt.addParam(new CmdIntParam("Message ID","3840", 2));
+      cmdPkt.loadParamList();
+      CmdList.set(CMD_FC_REM_PKT, cmdPkt);
       
    } // defineCmds
 
@@ -92,5 +93,14 @@ public class ToApp extends FswApp
       return null;
       
    } // getTlmStr
+
+   public String[] getTlmStrArray(CcsdsTlmPkt TlmMsg) 
+   {
+      loadTlmStrArrayHdr(TlmMsg);
+      
+      return TlmStrArray;
+      
+   } // getTlmStrArray()
+
    
 } // End class TlmOutput
